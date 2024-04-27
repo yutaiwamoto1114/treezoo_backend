@@ -1,0 +1,34 @@
+info:
+  contact: {}
+paths:
+  /example/ping:
+    get:
+      consumes:
+      - application/json
+      description: 無条件に"ping OK!"と返します。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: ping疎通確認
+      tags:
+      - example
+  /family/relations:
+    get:
+      consumes:
+      - application/json
+      description: すべての親子関係を取得します。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 親子関係全件取得
+      tags:
+      - family
+swagger: "2.0"

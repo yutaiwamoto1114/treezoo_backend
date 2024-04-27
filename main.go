@@ -1,35 +1,51 @@
+// main.go
 package main
 
 import (
-	"database/sql"
-	"fmt"
-	"log"
-
+	"treezoo_backend/api"
 	"treezoo_backend/db"
+	"treezoo_backend/docs"
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
+	// DB接続
 	config := db.LoadConfig("config.yml")
 	database := db.OpenConnection(config)
 	defer database.Close()
 
-	fetchData(database)
-}
+	// APIドキュメント化するAPIのベースパスを設定
+	docs.SwaggerInfo.BasePath = "/api/v1"
 
-func fetchData(db *sql.DB) {
-	rows, err := db.Query("SELECT * FROM view_parent_child_relations")
-	if err != nil {
-		log.Fatal("Query error:", err)
-	}
-	defer rows.Close()
+	// Ginライブラリを利用しAPIハンドラを起動
+	router := api.SetupRouter(database)
 
-	for rows.Next() {
-		var childName, childSpecies, parentName, parentSpecies, zooName, zooLocation string
-		err := rows.Scan(&childName, &childSpecies, &parentName, &parentSpecies, &zooName, &zooLocation)
-		if err != nil {
-			log.Fatal("Scan error:", err)
+	// /apiディレクトリ配下で定義したAPIを /api/v1 で適宜階層化してエンドポイント化
+	v1 := router.Group("/api/v1")
+	{
+		example := v1.Group("/example")
+		{
+			example.GET("/ping", api.Ping)
 		}
-		fmt.Printf("Child: %s, Species: %s, Parent: %s, Parent Species: %s, Zoo: %s, Location: %s\n",
-			childName, childSpecies, parentName, parentSpecies, zooName, zooLocation)
+		family := v1.Group("/family")
+		{
+			family.GET("/relations", api.ParentChildRelations(database))
+		}
 	}
+
+	v2 := router.Group("/api/v2")
+	{
+		hoge := v2.Group("/hoge")
+		{
+			hoge.GET("/hoge")
+		}
+	}
+
+	// Swagger UIのルート設定
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	// APIサーバ起動
+	router.Run(":8080")
 }
