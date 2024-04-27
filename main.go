@@ -1,16 +1,35 @@
 package main
 
 import (
-    "fmt"
-    "log"
-    "net/http"
+	"database/sql"
+	"fmt"
+	"log"
+
+	"treezoo_backend/db"
 )
 
 func main() {
-    http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-        fmt.Fprintf(w, "Hello, you've reached %s!", r.URL.Path[1:])
-    })
+	config := db.LoadConfig("config.yml")
+	database := db.OpenConnection(config)
+	defer database.Close()
 
-    fmt.Println("Server is running on http://localhost:8080")
-    log.Fatal(http.ListenAndServe(":8080", nil))
+	fetchData(database)
+}
+
+func fetchData(db *sql.DB) {
+	rows, err := db.Query("SELECT * FROM view_parent_child_relations")
+	if err != nil {
+		log.Fatal("Query error:", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var childName, childSpecies, parentName, parentSpecies, zooName, zooLocation string
+		err := rows.Scan(&childName, &childSpecies, &parentName, &parentSpecies, &zooName, &zooLocation)
+		if err != nil {
+			log.Fatal("Scan error:", err)
+		}
+		fmt.Printf("Child: %s, Species: %s, Parent: %s, Parent Species: %s, Zoo: %s, Location: %s\n",
+			childName, childSpecies, parentName, parentSpecies, zooName, zooLocation)
+	}
 }
