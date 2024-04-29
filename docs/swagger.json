@@ -27,6 +27,29 @@
                 }
             }
         },
+        "/family/animals": {
+            "get": {
+                "description": "すべての動物を取得します。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "family"
+                ],
+                "summary": "動物全件取得",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/family/relations": {
             "get": {
                 "description": "すべての親子関係を取得します。",

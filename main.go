@@ -31,15 +31,8 @@ func main() {
 		}
 		family := v1.Group("/family")
 		{
-			family.GET("/relations", api.ParentChildRelations(database))
-		}
-	}
-
-	v2 := router.Group("/api/v2")
-	{
-		hoge := v2.Group("/hoge")
-		{
-			hoge.GET("/hoge")
+			family.GET("/relations", api.FetchParentChildRelations(database))
+			family.GET("/animals", api.FetchAnimals(database))
 		}
 	}
 

@@ -16,6 +16,21 @@ paths:
       summary: ping疎通確認
       tags:
       - example
+  /family/animals:
+    get:
+      consumes:
+      - application/json
+      description: すべての動物を取得します。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 動物全件取得
+      tags:
+      - family
   /family/relations:
     get:
       consumes:
