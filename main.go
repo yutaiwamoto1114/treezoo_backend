@@ -33,6 +33,8 @@ func main() {
 		{
 			family.GET("/relations", api.FetchParentChildRelations(database))
 			family.GET("/animals", api.FetchAnimals(database))
+			family.GET("/children/:parentId", api.FetchChildrenByParentId(database))
+			family.GET("/parents/:childId", api.FetchParentsByChildId(database))
 		}
 	}
 

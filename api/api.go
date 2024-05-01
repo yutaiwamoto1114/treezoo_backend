@@ -21,7 +21,7 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 // @Tags family
 // @Accept json
 // @Produce json
-// @Success 200 {string} ping
+// @Success 200 {string} OK
 // @Router /family/relations [get]
 func FetchParentChildRelations(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -35,18 +35,20 @@ func FetchParentChildRelations(db *sql.DB) gin.HandlerFunc {
 		results := make([]map[string]interface{}, 0)
 		for rows.Next() {
 			// 結果をマッピングする変数群 (Modelクラスを作っておくのが本来のやり方)
-			var childName, childSpecies, parentName, parentSpecies, zooName, zooLocation string
+			var childId, childName, childSpecies, parentId, parentName, parentSpecies, zooName, zooLocation string
 
 			// rows.Scan()は、SQLクエリの結果から得られる各行のカラムを、指定されたポインタリストに順番に割り当てていく
 			// したがって、SQLクエリで指定されたカラムの順番とマッピングの順番は完全に一致している必要がある
 			// ORM(ORマッパー)を使わず自力でマッピングしようとするならこうなる
-			if err := rows.Scan(&childName, &childSpecies, &parentName, &parentSpecies, &zooName, &zooLocation); err != nil {
+			if err := rows.Scan(&childId, &childName, &childSpecies, &parentId, &parentName, &parentSpecies, &zooName, &zooLocation); err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Scan error"})
 				return
 			}
 			result := map[string]interface{}{
+				"childId":       childId,
 				"childName":     childName,
 				"childSpecies":  childSpecies,
+				"parentId":      parentId,
 				"parentName":    parentName,
 				"parentSpecies": parentSpecies,
 				"zooName":       zooName,
@@ -66,7 +68,7 @@ func FetchParentChildRelations(db *sql.DB) gin.HandlerFunc {
 // @Tags family
 // @Accept json
 // @Produce json
-// @Success 200 {string} animals
+// @Success 200 {string} OK
 // @Router /family/animals [get]
 func FetchAnimals(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -101,5 +103,91 @@ func FetchAnimals(db *sql.DB) gin.HandlerFunc {
 
 		// 結果を返却
 		c.JSON(http.StatusOK, animals)
+	}
+}
+
+// @Summary 子取得
+// @Schemes
+// @Description あるノードについて、その子をすべて取得します。
+// @Tags family
+// @Accept json
+// @Produce json
+// @Param parentId path int true "親の動物ID"
+// @Success 200 {string} OK
+// @Router /family/children/{parentId} [get]
+func FetchChildrenByParentId(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		parentId := c.Param("parentId")
+		query := `
+		SELECT
+			a.animal_id AS child_id,
+			a.name AS child_name
+		FROM
+			parent_child_relations r
+		JOIN
+			animals a ON r.child_id = a.animal_id
+		WHERE
+			r.parent_id = ?;
+        `
+		rows, err := db.Query(query, parentId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Query error"})
+			return
+		}
+		defer rows.Close()
+
+		var parents []model.AnimalSummary
+		for rows.Next() {
+			var parent model.AnimalSummary
+			if err := rows.Scan(&parent.AnimalId, &parent.AnimalName); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Scan error"})
+				return
+			}
+			parents = append(parents, parent)
+		}
+		c.JSON(http.StatusOK, parents)
+	}
+}
+
+// @Summary 親取得
+// @Schemes
+// @Description あるノードについて、その親をすべて取得します。
+// @Tags family
+// @Accept json
+// @Produce json
+// @Param childId path int true "子の動物ID"
+// @Success 200 {string} OK
+// @Router /family/parents/{childId} [get]
+func FetchParentsByChildId(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		childId := c.Param("childId")
+		query := `
+		SELECT
+			a.animal_id AS parent_id,
+			a.name AS parent_name
+		FROM
+			parent_child_relations r
+		JOIN
+			animals a ON r.parent_id = a.animal_id
+		WHERE
+			r.child_id = ?;
+        `
+		rows, err := db.Query(query, childId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Query error"})
+			return
+		}
+		defer rows.Close()
+
+		var children []model.AnimalSummary
+		for rows.Next() {
+			var child model.AnimalSummary
+			if err := rows.Scan(&child.AnimalId, &child.AnimalName); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Scan error"})
+				return
+			}
+			children = append(children, child)
+		}
+		c.JSON(http.StatusOK, children)
 	}
 }

@@ -31,6 +31,48 @@ paths:
       summary: 動物全件取得
       tags:
       - family
+  /family/children/{parentId}:
+    get:
+      consumes:
+      - application/json
+      description: あるノードについて、その子をすべて取得します。
+      parameters:
+      - description: 親の動物ID
+        in: path
+        name: parentId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 子取得
+      tags:
+      - family
+  /family/parents/{childId}:
+    get:
+      consumes:
+      - application/json
+      description: あるノードについて、その親をすべて取得します。
+      parameters:
+      - description: 子の動物ID
+        in: path
+        name: childId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 親取得
+      tags:
+      - family
   /family/relations:
     get:
       consumes:

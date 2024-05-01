@@ -61,6 +61,70 @@ const docTemplate = `{
                 }
             }
         },
+        "/family/children/{parentId}": {
+            "get": {
+                "description": "あるノードについて、その子をすべて取得します。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "family"
+                ],
+                "summary": "子取得",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "親の動物ID",
+                        "name": "parentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/family/parents/{childId}": {
+            "get": {
+                "description": "あるノードについて、その親をすべて取得します。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "family"
+                ],
+                "summary": "親取得",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "子の動物ID",
+                        "name": "childId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/family/relations": {
             "get": {
                 "description": "すべての親子関係を取得します。",
