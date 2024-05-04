@@ -20,7 +20,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: すべての動物を取得します。
+      description: すべての動物をMapとして取得します。
       produces:
       - application/json
       responses:
@@ -31,15 +31,30 @@ paths:
       summary: 動物全件取得
       tags:
       - family
-  /family/children/{parentId}:
+  /family/animals/relations:
+    get:
+      consumes:
+      - application/json
+      description: すべての動物をリストとして返します。自身の親、子のリストをプロパティとしてそれぞれ持ちます。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 動物および親子関係全件取得
+      tags:
+      - family
+  /family/children/{parentid}:
     get:
       consumes:
       - application/json
       description: あるノードについて、その子をすべて取得します。
       parameters:
-      - description: 親の動物ID
+      - description: 親の動物id
         in: path
-        name: parentId
+        name: parentid
         required: true
         type: integer
       produces:
@@ -77,7 +92,7 @@ paths:
     get:
       consumes:
       - application/json
-      description: すべての親子関係を取得します。
+      description: すべての親子関係をMapとして取得します。
       produces:
       - application/json
       responses:

@@ -17,7 +17,7 @@ func SetupRouter(db *sql.DB) *gin.Engine {
 
 // @Summary 親子関係全件取得
 // @Schemes
-// @Description すべての親子関係を取得します。
+// @Description すべての親子関係をMapとして取得します。
 // @Tags family
 // @Accept json
 // @Produce json
@@ -64,7 +64,7 @@ func FetchParentChildRelations(db *sql.DB) gin.HandlerFunc {
 
 // @Summary 動物全件取得
 // @Schemes
-// @Description すべての動物を取得します。
+// @Description すべての動物をMapとして取得します。
 // @Tags family
 // @Accept json
 // @Produce json
@@ -80,8 +80,8 @@ func FetchAnimals(db *sql.DB) gin.HandlerFunc {
 		}
 		defer rows.Close()
 
-		// 結果配列
-		var animals []model.Animal
+		// 結果Map
+		animals := make(map[int]model.Animal)
 
 		for rows.Next() {
 			// 1レコードをマッピングするModelクラスのインスタンス
@@ -90,19 +90,104 @@ func FetchAnimals(db *sql.DB) gin.HandlerFunc {
 			// Modelクラスのインスタンスフィールドに値を順番にマッピングする
 			// 誕生日(Birthday)など、NULLが許容されるフィールドは明示的な制御が必要
 			if err := rows.Scan(
-				&animal.AnimalID, &animal.AnimalName, &animal.Species,
+				&animal.AnimalId, &animal.AnimalName, &animal.Species,
 				&animal.Birthday, &animal.Age, &animal.Gender,
-				&animal.BirthZooID, &animal.BirthZooName, &animal.BirthZooLocation,
-				&animal.CurrentZooID, &animal.CurrentZooName, &animal.CurrentZooLocation,
+				&animal.BirthZooId, &animal.BirthZooName, &animal.BirthZooLocation,
+				&animal.CurrentZooId, &animal.CurrentZooName, &animal.CurrentZooLocation,
 			); err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Scan error: " + err.Error()})
 				return
 			}
-			animals = append(animals, animal)
+			// 動物IDをキーにしてMapに保存
+			animals[animal.AnimalId] = animal
 		}
 
 		// 結果を返却
 		c.JSON(http.StatusOK, animals)
+	}
+}
+
+// @Summary 動物および親子関係全件取得
+// @Schemes
+// @Description すべての動物をリストとして返します。自身の親、子のリストをプロパティとしてそれぞれ持ちます。
+// @Tags family
+// @Accept json
+// @Produce json
+// @Success 200 {string} OK
+// @Router /family/animals/relations [get]
+func FetchAnimalsWithRelations(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// SQLクエリで動物とその親子関係を結合して取得
+		query := `
+		SELECT
+			a.animal_id,
+			a.name,
+			a.species,
+			a.birthday,
+			a.age,
+			a.gender,
+			a.current_zoo_id,
+			z.name AS current_zoo_name,
+			r.parent_id,
+			r.child_id
+		FROM
+			animals a
+		LEFT JOIN
+			zoos z ON a.current_zoo_id = z.zoo_id
+		LEFT JOIN
+			parent_child_relations r ON a.animal_id = r.parent_id OR a.animal_id = r.child_id
+		ORDER BY
+			a.animal_id
+		`
+		rows, err := db.Query(query)
+		if err != nil {
+			log.Printf("Failed to execute query: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database query error"})
+			return
+		}
+		defer rows.Close()
+
+		// 結果Map
+		animals := make(map[int]*model.AnimalSummary)
+
+		// 結果の行を読み込みながら動物のマップを作成
+		for rows.Next() {
+			var animal model.AnimalSummary
+			var parentID, childID sql.NullInt64
+
+			if err := rows.Scan(
+				&animal.AnimalId, &animal.AnimalName, &animal.Species,
+				&animal.Birthday, &animal.Age, &animal.Gender,
+				&animal.CurrentZooId, &animal.CurrentZooName,
+				&parentID, &childID,
+			); err != nil {
+				log.Printf("Failed to scan row: %v", err)
+				continue
+			}
+
+			// 動物がマップになければ新しく追加
+			if _, exists := animals[animal.AnimalId]; !exists {
+				animal.Parents = []int{}
+				animal.Children = []int{}
+				animals[animal.AnimalId] = &animal
+			}
+
+			// 親子関係を追加
+			if parentID.Valid && int(parentID.Int64) != animal.AnimalId {
+				animals[animal.AnimalId].Parents = append(animals[animal.AnimalId].Parents, int(parentID.Int64))
+			}
+			if childID.Valid && int(childID.Int64) != animal.AnimalId {
+				animals[animal.AnimalId].Children = append(animals[animal.AnimalId].Children, int(childID.Int64))
+			}
+		}
+
+		// 結果を返却
+		results := make([]*model.AnimalSummary, 0, len(animals))
+		for _, animal := range animals {
+			results = append(results, animal)
+		}
+
+		c.JSON(http.StatusOK, results)
 	}
 }
 
@@ -112,9 +197,9 @@ func FetchAnimals(db *sql.DB) gin.HandlerFunc {
 // @Tags family
 // @Accept json
 // @Produce json
-// @Param parentId path int true "親の動物ID"
+// @Param parentid path int true "親の動物id"
 // @Success 200 {string} OK
-// @Router /family/children/{parentId} [get]
+// @Router /family/children/{parentid} [get]
 func FetchChildrenByParentId(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		parentId := c.Param("parentId")

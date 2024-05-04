@@ -29,7 +29,7 @@
         },
         "/family/animals": {
             "get": {
-                "description": "すべての動物を取得します。",
+                "description": "すべての動物をMapとして取得します。",
                 "consumes": [
                     "application/json"
                 ],
@@ -50,7 +50,30 @@
                 }
             }
         },
-        "/family/children/{parentId}": {
+        "/family/animals/relations": {
+            "get": {
+                "description": "すべての動物をリストとして返します。自身の親、子のリストをプロパティとしてそれぞれ持ちます。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "family"
+                ],
+                "summary": "動物および親子関係全件取得",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/family/children/{parentid}": {
             "get": {
                 "description": "あるノードについて、その子をすべて取得します。",
                 "consumes": [
@@ -66,8 +89,8 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "親の動物ID",
-                        "name": "parentId",
+                        "description": "親の動物id",
+                        "name": "parentid",
                         "in": "path",
                         "required": true
                     }
@@ -116,7 +139,7 @@
         },
         "/family/relations": {
             "get": {
-                "description": "すべての親子関係を取得します。",
+                "description": "すべての親子関係をMapとして取得します。",
                 "consumes": [
                     "application/json"
                 ],
