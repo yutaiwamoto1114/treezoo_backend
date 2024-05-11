@@ -1,12 +1,11 @@
 // lib/model/picture_model.go
 package model
 
-import (
-	"database/sql"
-)
+import "database/sql"
 
-// 写真モデル: 画像のバイナリデータBase64エンコード文字列とメタデータを保持する
-type Picture struct {
+// 動物プロフィール写真モデル
+type AnimalProfilePicture struct {
+	AnimalId  int `json:"animal_id"`
 	PictureId int `json:"picture_id"`
 	// PictureData []byte         `json:"picture_data"`
 	PictureData string         `json:"picture_data"`

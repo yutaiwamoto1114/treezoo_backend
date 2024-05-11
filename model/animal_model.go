@@ -1,4 +1,4 @@
-// lib/models/animal_summary_model.go
+// lib/model/animal_summary_model.go
 package model
 
 import "time"

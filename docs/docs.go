@@ -171,9 +171,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/picture/profile/{animalId}": {
+        "/picture/animal/profile/{animalId}": {
             "get": {
-                "description": "特定の動物IDに紐づくプロフィール画像のバイナリデータとメタデータを取得します。",
+                "description": "特定の動物IDに紐づくプロフィール写真のバイナリデータとメタデータを取得します。",
                 "consumes": [
                     "application/json"
                 ],
@@ -183,7 +183,7 @@ const docTemplate = `{
                 "tags": [
                     "picture"
                 ],
-                "summary": "プロフィール画像取得",
+                "summary": "プロフィール写真取得",
                 "parameters": [
                     {
                         "type": "integer",

@@ -286,14 +286,17 @@ func FetchParentsByChildId(db *sql.DB) gin.HandlerFunc {
 // @Param animalId path int true "動物ID"
 // @Success 200 {string} OK
 // @Failure 404 "No profile picture found"
-// @Router /picture/profile/{animalId} [get]
+// @Router /picture/animal/profile/{animalId} [get]
 func FetchProfilePictureByAnimalId(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		animalId := c.Param("animalId")
 
+		var picture model.AnimalProfilePicture
+
 		// プロフィール写真をビューから取得
 		query := `
         SELECT
+			animal_id,
 			picture_id,
 			picture_data,
 			description,
@@ -308,8 +311,8 @@ func FetchProfilePictureByAnimalId(db *sql.DB) gin.HandlerFunc {
         `
 
 		row := db.QueryRow(query, animalId)
-		var picture model.Picture
 		err := row.Scan(
+			&picture.AnimalId,
 			&picture.PictureId,
 			&picture.PictureData,
 			&picture.Description,
@@ -329,18 +332,19 @@ func FetchProfilePictureByAnimalId(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 
-		// null値を適切にハンドリングしたあとのレスポンスを生成
-		pictureResponse := map[string]interface{}{
-			"pictureId":   picture.PictureId,
-			"pictureData": picture.PictureData,
-			"description": nilIfNullString(picture.Description),
-			"isProfile":   nilIfNullBool(picture.IsProfile),
-			"priority":    nilIfNullInt64(picture.Priority),
-			"shootDate":   nilIfNullTime(picture.ShootDate),
-			"uploadDate":  nilIfNullTime(picture.UploadDate),
+		// null値を適切にハンドリング
+		response := map[string]interface{}{
+			"animal_id":    picture.AnimalId,
+			"picture_id":   picture.PictureId,
+			"picture_data": picture.PictureData,
+			"description":  nilIfNullString(picture.Description),
+			"is_profile":   nilIfNullBool(picture.IsProfile),
+			"priority":     nilIfNullInt64(picture.Priority),
+			"shoot_date":   nilIfNullTime(picture.ShootDate),
+			"upload_date":  nilIfNullTime(picture.UploadDate),
 		}
 
 		// 結果を返却
-		c.JSON(http.StatusOK, pictureResponse)
+		c.JSON(http.StatusOK, response)
 	}
 }

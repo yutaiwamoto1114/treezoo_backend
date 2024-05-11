@@ -87,7 +87,7 @@ func main() {
 		}
 		picture := v1.Group("/picture")
 		{
-			picture.GET("/profile/:animalId", api.FetchProfilePictureByAnimalId(connection))
+			picture.GET("/animal/profile/:animalId", api.FetchProfilePictureByAnimalId(connection))
 		}
 	}
 
