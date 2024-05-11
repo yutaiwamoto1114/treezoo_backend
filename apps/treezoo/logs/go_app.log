@@ -1,1 +1,21 @@
 2024/05/04 16:36:56 Logging started
+2024/05/11 15:47:57 Logging started
+2024/05/11 18:12:38 Logging started
+2024/05/11 18:45:51 Logging started
+2024/05/11 18:47:24 Logging started
+2024/05/11 18:48:59 Logging started
+2024/05/11 18:50:40 Logging started
+2024/05/11 18:50:49 Query error: sql: Scan error on column index 3, name "priority": converting NULL to int is unsupported
+2024/05/11 18:52:27 Query error: sql: Scan error on column index 3, name "priority": converting NULL to int is unsupported
+2024/05/11 18:54:16 Logging started
+2024/05/11 18:58:29 Logging started
+2024/05/11 18:58:54 Query error: sql: Scan error on column index 4, name "priority": converting NULL to int is unsupported
+2024/05/11 19:00:10 Logging started
+2024/05/11 19:00:15 Query error: sql: Scan error on column index 4, name "priority": converting NULL to int is unsupported
+2024/05/11 19:00:19 Query error: sql: Scan error on column index 4, name "priority": converting NULL to int is unsupported
+2024/05/11 19:00:29 Query error: sql: Scan error on column index 4, name "priority": converting NULL to int is unsupported
+2024/05/11 19:04:02 Logging started
+2024/05/11 19:04:25 Query error: sql: Scan error on column index 4, name "priority": converting NULL to int is unsupported
+2024/05/11 19:04:49 Query error: sql: Scan error on column index 4, name "priority": converting NULL to int is unsupported
+2024/05/11 19:13:20 Logging started
+2024/05/11 19:56:13 Logging started

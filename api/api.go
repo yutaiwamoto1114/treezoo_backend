@@ -276,3 +276,71 @@ func FetchParentsByChildId(db *sql.DB) gin.HandlerFunc {
 		c.JSON(http.StatusOK, children)
 	}
 }
+
+// @Summary プロフィール写真取得
+// @Schemes
+// @Description 特定の動物IDに紐づくプロフィール写真のバイナリデータとメタデータを取得します。
+// @Tags picture
+// @Accept json
+// @Produce json
+// @Param animalId path int true "動物ID"
+// @Success 200 {string} OK
+// @Failure 404 "No profile picture found"
+// @Router /picture/profile/{animalId} [get]
+func FetchProfilePictureByAnimalId(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		animalId := c.Param("animalId")
+
+		// プロフィール写真をビューから取得
+		query := `
+        SELECT
+			picture_id,
+			picture_data,
+			description,
+			is_profile,
+			priority,
+			shoot_date,
+			upload_date
+        FROM
+			view_animal_pictures
+        WHERE
+			animal_id = ? AND is_profile = true;
+        `
+
+		row := db.QueryRow(query, animalId)
+		var picture model.Picture
+		err := row.Scan(
+			&picture.PictureId,
+			&picture.PictureData,
+			&picture.Description,
+			&picture.IsProfile,
+			&picture.Priority,
+			&picture.ShootDate,
+			&picture.UploadDate,
+		)
+
+		if err != nil {
+			if err == sql.ErrNoRows {
+				c.JSON(http.StatusNotFound, gin.H{"error": "No profile picture found"})
+			} else {
+				log.Printf("Query error: %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Database query error"})
+			}
+			return
+		}
+
+		// null値を適切にハンドリングしたあとのレスポンスを生成
+		pictureResponse := map[string]interface{}{
+			"pictureId":   picture.PictureId,
+			"pictureData": picture.PictureData,
+			"description": nilIfNullString(picture.Description),
+			"isProfile":   nilIfNullBool(picture.IsProfile),
+			"priority":    nilIfNullInt64(picture.Priority),
+			"shootDate":   nilIfNullTime(picture.ShootDate),
+			"uploadDate":  nilIfNullTime(picture.UploadDate),
+		}
+
+		// 結果を返却
+		c.JSON(http.StatusOK, pictureResponse)
+	}
+}

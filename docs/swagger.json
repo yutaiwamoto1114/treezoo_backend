@@ -159,6 +159,41 @@
                     }
                 }
             }
+        },
+        "/picture/profile/{animalId}": {
+            "get": {
+                "description": "特定の動物IDに紐づくプロフィール画像のバイナリデータとメタデータを取得します。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "picture"
+                ],
+                "summary": "プロフィール画像取得",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "動物ID",
+                        "name": "animalId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "404": {
+                        "description": "No profile picture found"
+                    }
+                }
+            }
         }
     }
 }

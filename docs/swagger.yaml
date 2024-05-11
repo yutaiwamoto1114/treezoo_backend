@@ -103,4 +103,27 @@ paths:
       summary: 親子関係全件取得
       tags:
       - family
+  /picture/profile/{animalId}:
+    get:
+      consumes:
+      - application/json
+      description: 特定の動物IDに紐づくプロフィール画像のバイナリデータとメタデータを取得します。
+      parameters:
+      - description: 動物ID
+        in: path
+        name: animalId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "404":
+          description: No profile picture found
+      summary: プロフィール画像取得
+      tags:
+      - picture
 swagger: "2.0"

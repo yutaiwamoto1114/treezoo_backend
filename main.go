@@ -32,14 +32,14 @@ func main() {
 
 	// DB接続
 	config := db.LoadConfig("config.yml")
-	database := db.OpenConnection(config)
-	defer database.Close()
+	connection := db.OpenConnection(config)
+	defer connection.Close()
 
 	// APIドキュメント化するAPIのベースパスを設定
 	docs.SwaggerInfo.BasePath = "/api/v1"
 
 	// Ginライブラリを利用しAPIハンドラを起動
-	router := api.SetupRouter(database)
+	router := api.SetupRouter(connection)
 
 	// CORS設定
 	router.Use(cors.New(cors.Config{
@@ -49,8 +49,10 @@ func main() {
 		},
 		// アクセスを許可したいHTTPメソッド
 		AllowMethods: []string{
-			"POST",
 			"GET",
+			"POST",
+			"PUT",
+			"DELETE",
 			"OPTIONS",
 		},
 		// 許可したいHTTPリクエストヘッダ
@@ -77,11 +79,15 @@ func main() {
 		}
 		family := v1.Group("/family")
 		{
-			family.GET("/relations", api.FetchParentChildRelations(database))
-			family.GET("/animals", api.FetchAnimals(database))
-			family.GET("/animals/relations", api.FetchAnimalsWithRelations(database))
-			family.GET("/children/:parentId", api.FetchChildrenByParentId(database))
-			family.GET("/parents/:childId", api.FetchParentsByChildId(database))
+			family.GET("/relations", api.FetchParentChildRelations(connection))
+			family.GET("/animals", api.FetchAnimals(connection))
+			family.GET("/animals/relations", api.FetchAnimalsWithRelations(connection))
+			family.GET("/children/:parentId", api.FetchChildrenByParentId(connection))
+			family.GET("/parents/:childId", api.FetchParentsByChildId(connection))
+		}
+		picture := v1.Group("/picture")
+		{
+			picture.GET("/profile/:animalId", api.FetchProfilePictureByAnimalId(connection))
 		}
 	}
 
