@@ -5,10 +5,9 @@ import "database/sql"
 
 // 動物プロフィール写真モデル
 type AnimalProfilePicture struct {
-	AnimalId  int `json:"animal_id"`
-	PictureId int `json:"picture_id"`
-	// PictureData []byte         `json:"picture_data"`
-	PictureData string         `json:"picture_data"`
+	AnimalId    int            `json:"animal_id"`
+	PictureId   int            `json:"picture_id"`
+	PictureData []byte         `json:"picture_data"`
 	Description sql.NullString `json:"description"`
 	IsProfile   sql.NullBool   `json:"is_profile"`
 	Priority    sql.NullInt64  `json:"priority"`

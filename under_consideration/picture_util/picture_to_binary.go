@@ -2,7 +2,6 @@
 package main
 
 import (
-	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -17,17 +16,17 @@ func main() {
 	defer con.Close()
 
 	// 画像ファイルの読み込み
-	data, err := ioutil.ReadFile(`C:\Users\yutai\OneDrive\画像\カメラ ロール\TreeZoo\Hippo\animal_hippo.png`)
+	data, err := ioutil.ReadFile(`C:\Users\yutai\OneDrive\画像\カメラ ロール\TreeZoo\Hippo\fiona.jpg`)
 	if err != nil {
 		log.Fatal(err)
 	}
 	// エンコード前のデータサイズ
 	fmt.Println("Original Data Size:", len(data), "bytes")
 
-	// Base64エンコード
-	encodedData := base64.StdEncoding.EncodeToString(data)
-	// エンコード後のデータサイズ
-	fmt.Println("Encoded Data Size:", len(encodedData), "bytes")
+	// // Base64エンコード
+	// encodedData := base64.StdEncoding.EncodeToString(data)
+	// // エンコード後のデータサイズ
+	// fmt.Println("Encoded Data Size:", len(encodedData), "bytes")
 
 	// DBにバイナリデータ挿入
 	stmt, err := con.Prepare("insert into pictures (picture_data) values (?)")
