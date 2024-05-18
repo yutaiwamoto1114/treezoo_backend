@@ -16,6 +16,21 @@ paths:
       summary: ping疎通確認
       tags:
       - example
+  /family/animal/{animalId}:
+    get:
+      consumes:
+      - application/json
+      description: 動物1件を取得します。
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 動物1件取得
+      tags:
+      - family
   /family/animals:
     get:
       consumes:
@@ -44,6 +59,27 @@ paths:
           schema:
             type: string
       summary: 動物および親子関係全件取得
+      tags:
+      - family
+  /family/childrelations/{rootAnimalId}:
+    get:
+      consumes:
+      - application/json
+      description: 特定の動物IDをルートした家系図を取得します。
+      parameters:
+      - description: ルートとなる動物のID
+        in: path
+        name: rootAnimalId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 特定の動物IDに基づく家系図取得
       tags:
       - family
   /family/children/{parentid}:
@@ -101,6 +137,27 @@ paths:
           schema:
             type: string
       summary: 親子関係全件取得
+      tags:
+      - family
+  /family/tree/{rootAnimalId}:
+    get:
+      consumes:
+      - application/json
+      description: 特定の動物IDを中心とした家系図を取得します。
+      parameters:
+      - description: ルートとなる動物のID
+        in: path
+        name: rootAnimalId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 特定の動物IDに基づく家系図取得
       tags:
       - family
   /picture/animal/profile/{animalId}:

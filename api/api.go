@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -107,6 +108,41 @@ func FetchAnimals(db *sql.DB) gin.HandlerFunc {
 	}
 }
 
+// @Summary 動物1件取得
+// @Schemes
+// @Description 動物1件を取得します。
+// @Tags family
+// @Accept json
+// @Produce json
+// @Success 200 {string} OK
+// @Router /family/animal/{animalId} [get]
+func FetchAnimalById(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		animalId := c.Param("animalId")
+		id, err := strconv.Atoi(animalId)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid animal ID"})
+			return
+		}
+
+		query := `SELECT animal_id, name, species, birthday, age, gender, current_zoo_id 
+				  FROM animals 
+				  WHERE animal_id = ?`
+		var animal model.AnimalSummary
+		row := db.QueryRow(query, id)
+		err = row.Scan(&animal.AnimalId, &animal.AnimalName, &animal.Species, &animal.Birthday, &animal.Age, &animal.Gender, &animal.CurrentZooId)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				c.JSON(http.StatusNotFound, gin.H{"error": "Animal not found"})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Query error: " + err.Error()})
+			}
+			return
+		}
+		c.JSON(http.StatusOK, animal)
+	}
+}
+
 // @Summary 動物および親子関係全件取得
 // @Schemes
 // @Description すべての動物をリストとして返します。自身の親、子のリストをプロパティとしてそれぞれ持ちます。
@@ -199,7 +235,7 @@ func FetchAnimalsWithRelations(db *sql.DB) gin.HandlerFunc {
 // @Produce json
 // @Param parentid path int true "親の動物id"
 // @Success 200 {string} OK
-// @Router /family/children/{parentid} [get]
+// @Router /family/children/{parentId} [get]
 func FetchChildrenByParentId(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		parentId := c.Param("parentId")
@@ -346,5 +382,157 @@ func FetchProfilePictureByAnimalId(db *sql.DB) gin.HandlerFunc {
 
 		// 結果を返却
 		c.JSON(http.StatusOK, response)
+	}
+}
+
+// @Summary 特定の動物IDに基づく家系図取得
+// @Schemes
+// @Description 特定の動物IDを中心とした家系図を取得します。
+// @Tags family
+// @Accept json
+// @Produce json
+// @Param rootAnimalId path int true "ルートとなる動物のID"
+// @Success 200 {string} OK
+// @Router /family/tree/{rootAnimalId} [get]
+func FetchFamilyTreeByRootId(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		rootAnimalId := c.Param("rootAnimalId")
+
+		// SQLクエリで動物とその親子関係を結合して取得
+		query := `
+        WITH RECURSIVE family_tree AS (
+            SELECT
+                a.animal_id,
+                a.name,
+                a.species,
+                a.birthday,
+                a.age,
+                a.gender,
+                a.current_zoo_id,
+                z.name AS current_zoo_name,
+                r.parent_id,
+                r.child_id
+            FROM
+                animals a
+            LEFT JOIN
+                zoos z ON a.current_zoo_id = z.zoo_id
+            LEFT JOIN
+                parent_child_relations r ON a.animal_id = r.parent_id OR a.animal_id = r.child_id
+            WHERE
+                a.animal_id = ?
+            UNION
+            SELECT
+                a.animal_id,
+                a.name,
+                a.species,
+                a.birthday,
+                a.age,
+                a.gender,
+                a.current_zoo_id,
+                z.name AS current_zoo_name,
+                r.parent_id,
+                r.child_id
+            FROM
+                animals a
+            LEFT JOIN
+                zoos z ON a.current_zoo_id = z.zoo_id
+            LEFT JOIN
+                parent_child_relations r ON a.animal_id = r.parent_id OR a.animal_id = r.child_id
+            INNER JOIN
+                family_tree ft ON ft.parent_id = a.animal_id OR ft.child_id = a.animal_id
+        )
+        SELECT * FROM family_tree;
+        `
+		rows, err := db.Query(query, rootAnimalId)
+		if err != nil {
+			log.Printf("Failed to execute query: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database query error"})
+			return
+		}
+		defer rows.Close()
+
+		// 結果Map
+		animals := make(map[int]*model.AnimalSummary)
+
+		// 結果の行を読み込みながら動物のマップを作成
+		for rows.Next() {
+			var animal model.AnimalSummary
+			var parentID, childID sql.NullInt64
+
+			if err := rows.Scan(
+				&animal.AnimalId, &animal.AnimalName, &animal.Species,
+				&animal.Birthday, &animal.Age, &animal.Gender,
+				&animal.CurrentZooId, &animal.CurrentZooName,
+				&parentID, &childID,
+			); err != nil {
+				log.Printf("Failed to scan row: %v", err)
+				continue
+			}
+
+			// 動物がマップになければ新しく追加
+			if _, exists := animals[animal.AnimalId]; !exists {
+				animal.Parents = []int{}
+				animal.Children = []int{}
+				animals[animal.AnimalId] = &animal
+			}
+
+			// 親子関係を追加
+			if parentID.Valid && int(parentID.Int64) != animal.AnimalId {
+				animals[animal.AnimalId].Parents = append(animals[animal.AnimalId].Parents, int(parentID.Int64))
+			}
+			if childID.Valid && int(childID.Int64) != animal.AnimalId {
+				animals[animal.AnimalId].Children = append(animals[animal.AnimalId].Children, int(childID.Int64))
+			}
+		}
+
+		// 結果を返却
+		results := make([]*model.AnimalSummary, 0, len(animals))
+		for _, animal := range animals {
+			results = append(results, animal)
+		}
+
+		c.JSON(http.StatusOK, results)
+	}
+}
+
+// @Summary 特定の動物IDに基づく家系図取得
+// @Schemes
+// @Description 特定の動物IDをルートした家系図を取得します。
+// @Tags family
+// @Accept json
+// @Produce json
+// @Param rootAnimalId path int true "ルートとなる動物のID"
+// @Success 200 {string} OK
+// @Router /family/childrelations/{rootAnimalId} [get]
+func FetchChildRelationsByRootId(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		rootAnimalId := c.Param("rootAnimalId")
+		id, err := strconv.Atoi(rootAnimalId)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid root animal ID"})
+			return
+		}
+
+		query := `SELECT child_id, parent_id 
+				  FROM parent_child_relations 
+				  WHERE parent_id = ?`
+		rows, err := db.Query(query, id)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Query error: " + err.Error()})
+			return
+		}
+		defer rows.Close()
+
+		var relations []model.ParentChildRelation
+		for rows.Next() {
+			var relation model.ParentChildRelation
+			if err := rows.Scan(&relation.ChildId, &relation.ParentId); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Scan error"})
+				return
+			}
+			relations = append(relations, relation)
+		}
+
+		c.JSON(http.StatusOK, relations)
 	}
 }

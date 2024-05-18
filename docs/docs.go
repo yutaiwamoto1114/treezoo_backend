@@ -38,6 +38,29 @@ const docTemplate = `{
                 }
             }
         },
+        "/family/animal/{animalId}": {
+            "get": {
+                "description": "動物1件を取得します。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "family"
+                ],
+                "summary": "動物1件取得",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/family/animals": {
             "get": {
                 "description": "すべての動物をMapとして取得します。",
@@ -74,6 +97,38 @@ const docTemplate = `{
                     "family"
                 ],
                 "summary": "動物および親子関係全件取得",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/family/childrelations/{rootAnimalId}": {
+            "get": {
+                "description": "特定の動物IDをルートした家系図を取得します。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "family"
+                ],
+                "summary": "特定の動物IDに基づく家系図取得",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ルートとなる動物のID",
+                        "name": "rootAnimalId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -161,6 +216,38 @@ const docTemplate = `{
                     "family"
                 ],
                 "summary": "親子関係全件取得",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/family/tree/{rootAnimalId}": {
+            "get": {
+                "description": "特定の動物IDを中心とした家系図を取得します。",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "family"
+                ],
+                "summary": "特定の動物IDに基づく家系図取得",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ルートとなる動物のID",
+                        "name": "rootAnimalId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
