@@ -87,6 +87,7 @@ func main() {
 			family.GET("/parents/:childId", api.FetchParentsByChildId(connection))
 			family.GET("/tree/:rootAnimalId", api.FetchFamilyTreeByRootId(connection))
 			family.GET("/childrelations/:rootAnimalId", api.FetchChildRelationsByRootId(connection))
+			family.GET("/partner/:animalId", api.FetchPartnerRelationsByAnimalId(connection))
 		}
 		picture := v1.Group("/picture")
 		{

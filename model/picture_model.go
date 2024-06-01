@@ -1,4 +1,4 @@
-// lib/model/picture_model.go
+// /model/picture_model.go
 package model
 
 import (

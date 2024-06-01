@@ -82,7 +82,7 @@ paths:
       summary: 特定の動物IDに基づく家系図取得
       tags:
       - family
-  /family/children/{parentid}:
+  /family/children/{parentId}:
     get:
       consumes:
       - application/json
@@ -122,6 +122,27 @@ paths:
           schema:
             type: string
       summary: 親取得
+      tags:
+      - family
+  /family/partner/{animalId}:
+    get:
+      consumes:
+      - application/json
+      description: 指定された動物IDの交際相手を取得します。
+      parameters:
+      - description: 動物ID
+        in: path
+        name: animalId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: 交際相手取得
       tags:
       - family
   /family/relations:

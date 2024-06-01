@@ -1,3 +1,8 @@
+// /api/api.go
+/*
+	現状、エンドポイント、ビジネスロジック、データアクセスを分離していないが、
+	将来的には分離したい
+*/
 package api
 
 import (
@@ -531,6 +536,72 @@ func FetchChildRelationsByRootId(db *sql.DB) gin.HandlerFunc {
 				return
 			}
 			relations = append(relations, relation)
+		}
+
+		c.JSON(http.StatusOK, relations)
+	}
+}
+
+// @Summary 交際相手取得
+// @Schemes
+// @Description 指定された動物IDの交際相手を取得します。
+// @Tags family
+// @Accept json
+// @Produce json
+// @Param animalId path int true "動物ID"
+// @Success 200 {string} OK
+// @Router /family/partner/{animalId} [get]
+func FetchPartnerRelationsByAnimalId(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		animalId := c.Param("animalId")
+
+		query := `
+			SELECT
+				pr.partner_relation_id, 
+				pr.animal1_id, 
+				pr.animal2_id, 
+				pr.status, 
+				pr.notes
+			FROM
+				partner_relations pr
+			WHERE
+				pr.animal1_id = ? OR pr.animal2_id = ?;
+		`
+
+		// animal1とanimal2どちらに登録されているかは分からない
+		rows, err := db.Query(query, animalId, animalId)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Query error"})
+			return
+		}
+		defer rows.Close()
+
+		// 取得された交際関係をリストとして返却
+		var relations []map[string]interface{}
+		var notes sql.NullString // notesはNULL許容
+		for rows.Next() {
+			var relation model.PartnerRelation
+			if err := rows.Scan(
+				&relation.PartnerRelationId,
+				&relation.Animal1Id,
+				&relation.Animal2Id,
+				&relation.Status,
+				&notes,
+			); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Scan error"})
+				return
+			}
+
+			// ヘルパー関数を使用してNULLをチェックし、適切に変換
+			relationMap := map[string]interface{}{
+				"partner_relation_id": relation.PartnerRelationId,
+				"animal1_id":          relation.Animal1Id,
+				"animal2_id":          relation.Animal2Id,
+				"status":              relation.Status,
+				"notes":               nilIfNullString(notes),
+			}
+
+			relations = append(relations, relationMap)
 		}
 
 		c.JSON(http.StatusOK, relations)

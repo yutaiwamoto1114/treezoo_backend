@@ -1,3 +1,4 @@
+// /model/parent_child_relation_model.go
 package model
 
 type ParentChildRelation struct {

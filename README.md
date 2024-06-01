@@ -7,9 +7,13 @@
 - [1. 構成](#1-構成)
 - [2. ディレクトリ構成](#2-ディレクトリ構成)
 - [3. デバッグ方法](#3-デバッグ方法)
-- [4. ビルド方法](#4-ビルド方法)
-- [5. デプロイ](#5-デプロイ)
-- [6. Goバージョンアップ](#6-goバージョンアップ)
+  - [3.1. Swaggerドキュメント更新](#31-swaggerドキュメント更新)
+  - [3.2. サーバ起動](#32-サーバ起動)
+  - [3.3. Swagger UIからのAPIテスト](#33-swagger-uiからのapiテスト)
+- [4. Swaggerドキュメントの記述](#4-swaggerドキュメントの記述)
+- [5. ビルド方法](#5-ビルド方法)
+- [6. デプロイ](#6-デプロイ)
+- [7. Goバージョンアップ](#7-goバージョンアップ)
 
 ## 1. 構成
 - Go 1.22.3
@@ -28,9 +32,26 @@
 ```
 
 ## 3. デバッグ方法
+### 3.1. Swaggerドキュメント更新
+`swag init`
+### 3.2. サーバ起動
 `go run .\main.go`
+### 3.3. Swagger UIからのAPIテスト
+`http://localhost:8080/swagger/index.html` にアクセスし、作成したエンドポイントをテストできます。
 
-## 4. ビルド方法
+## 4. Swaggerドキュメントの記述
+エンドポイント定義の直前に以下を記述してください。
+```
+// @Summary ping疎通確認
+// @Schemes
+// @Description 無条件に"ping OK!"と返します。
+// @Tags example
+// @Accept json
+// @Produce json
+// @Success 200 {string} ping
+// @Router /example/ping [get]
+```
+## 5. ビルド方法
 `go build -o treezoo-backend.exe main.go`
 
 環境切替方法は未検討です。
@@ -38,10 +59,10 @@
 - stg環境
 - pord環境
 
-## 5. デプロイ
+## 6. デプロイ
 未検討です。
 
-## 6. Goバージョンアップ
+## 7. Goバージョンアップ
 1. 現在のバージョンを確認します。
     `go version`
 2. [All releases - The Go Programming Language](https://go.dev/dl/) にて、最新のStableバージョンを確認します。
