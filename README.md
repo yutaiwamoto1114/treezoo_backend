@@ -1,5 +1,5 @@
 <!-- omit in toc -->
-# treezoo_frontend
+# treezoo_backend
 
 動物園で暮らす動物たちの家系図アプリ「TreeZoo」のバックエンドを提供するGoプロジェクトです。フロントエンドを提供するFlutterプロジェクトは [treezoo_frontend](https://github.com/yutaiwamoto1114/treezoo_frontend) にて公開しています。
 
